@@ -1,82 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Persistent Reviews</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    .review-form input, .review-form textarea, .review-form select {
-      width: 100%; margin-bottom: 10px; padding: 8px;
-    }
-    .review-form button {
-      padding: 10px; background: #28a745; color: white; border: none; cursor: pointer;
-    }
-    .review { background: #f9f9f9; padding: 15px; margin-top: 10px; border-radius: 8px; }
-    .stars { color: gold; }
-  </style>
+  <title>Review Form</title>
 </head>
 <body>
-
-<h2>Leave a Review</h2>
-<div class="review-form">
-  <input type="text" id="name" placeholder="Your Name">
+  <h2>Leave a Review</h2>
+  <input type="text" id="name" placeholder="Name"><br>
   <select id="rating">
     <option value="5">★★★★★</option>
     <option value="4">★★★★☆</option>
     <option value="3">★★★☆☆</option>
     <option value="2">★★☆☆☆</option>
     <option value="1">★☆☆☆☆</option>
-  </select>
-  <textarea id="comment" rows="4" placeholder="Write your review..."></textarea>
-  <button onclick="addReview()">Submit Review</button>
-</div>
+  </select><br>
+  <textarea id="comment" placeholder="Write your review..."></textarea><br>
+  <button onclick="addReview()">Add Review</button>
+  <button onclick="downloadJSON()">Download JSON</button>
 
-<h2>Reviews</h2>
-<div id="reviews"></div>
+  <h2>All Reviews</h2>
+  <div id="reviews"></div>
 
-<script>
-  // Load existing reviews
-  window.onload = function () {
-    const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-    reviews.forEach(r => showReview(r));
-  };
+  <script>
+    let reviews = [];
 
-  function addReview() {
-    const name = document.getElementById('name').value;
-    const rating = parseInt(document.getElementById('rating').value);
-    const comment = document.getElementById('comment').value;
+    function addReview() {
+      const name = document.getElementById('name').value;
+      const rating = parseInt(document.getElementById('rating').value);
+      const comment = document.getElementById('comment').value;
 
-    if (!name || !comment) {
-      alert("Fill all fields");
-      return;
+      if (!name || !comment) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      const review = { name, rating, comment };
+      reviews.unshift(review);
+      renderReviews();
     }
 
-    const review = { name, rating, comment };
+    function renderReviews() {
+      const container = document.getElementById('reviews');
+      container.innerHTML = '';
+      reviews.forEach(r => {
+        container.innerHTML += `
+          <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+            <b>${r.name}</b><br>
+            ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}<br>
+            <i>${r.comment}</i>
+          </div>
+        `;
+      });
+    }
 
-    // Save to localStorage
-    const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-    reviews.unshift(review); // Add new review to start
-    localStorage.setItem('reviews', JSON.stringify(reviews));
-
-    showReview(review);
-
-    // Clear form
-    document.getElementById('name').value = '';
-    document.getElementById('rating').value = '5';
-    document.getElementById('comment').value = '';
-  }
-
-  function showReview(r) {
-    const reviewDiv = document.createElement('div');
-    reviewDiv.className = 'review';
-    reviewDiv.innerHTML = `
-      <strong>${r.name}</strong><br>
-      <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-      <p>${r.comment}</p>
-    `;
-    document.getElementById('reviews').prepend(reviewDiv);
-  }
-</script>
-
+    function downloadJSON() {
+      const blob = new Blob([JSON.stringify(reviews, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'reviews.json';
+      link.click();
+    }
+  </script>
 </body>
 </html>
