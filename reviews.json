@@ -1,1 +1,4 @@
-[]
+[
+  { "name": "Alice", "comment": "Loved it!" },
+  { "name": "Bob", "comment": "Great work!" }
+]
