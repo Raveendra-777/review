@@ -1,33 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Reviews</title>
+  <meta charset="UTF-8" />
+  <title>Review Submission</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, textarea, select { width: 100%; margin-bottom: 10px; padding: 8px; }
+    button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    #status { margin-top: 15px; font-weight: bold; }
+  </style>
 </head>
 <body>
-  <h2>Submit Review</h2>
-  <p><i>Form won’t save unless you use a backend.</i></p>
-  <input id="name" placeholder="Your name"><br>
-  <textarea id="comment" placeholder="Your review"></textarea><br>
-  <button onclick="alert('Submit disabled on GitHub Pages')">Submit</button>
 
-  <h2>Reviews</h2>
-  <div id="reviews"></div>
+  <h2>Leave  Review</h2>
+
+  <input type="text" id="name" placeholder="Your Name" required />
+  <select id="rating">
+    <option value="5">★★★★★</option>
+    <option value="4">★★★★☆</option>
+    <option value="3">★★★☆☆</option>
+    <option value="2">★★☆☆☆</option>
+    <option value="1">★☆☆☆☆</option>
+  </select>
+  <textarea id="comment" placeholder="Write your review here..." rows="4" required></textarea>
+  <button id="submit">Submit Review</button>
+
+  <p id="status"></p>
 
   <script>
-    fetch('reviews.json')
-      .then(res => res.json())
+    document.getElementById('submit').addEventListener('click', () => {
+      const name = document.getElementById('name').value.trim();
+      const rating = document.getElementById('rating').value;
+      const comment = document.getElementById('comment').value.trim();
+      const status = document.getElementById('status');
+
+      if (!name || !comment) {
+        status.textContent = 'Please enter your name and comment.';
+        status.style.color = 'red';
+        return;
+      }
+
+      status.textContent = 'Submitting...';
+      status.style.color = 'black';
+
+      fetch('https://script.google.com/macros/s/AKfycbyELdna_p2Isbx_erPyj7B3rbJr5ErZk-s_jodV_GbUiTp4Rgz662XxGXaup05cn23g/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, rating, comment }),
+      })
+      .then(response => response.json())
       .then(data => {
-        const container = document.getElementById("reviews");
-        data.forEach(r => {
-          container.innerHTML += `
-            <div style="border:1px solid #ccc; margin:10px; padding:10px;">
-              <b>${r.name}</b><br>
-              <i>${r.comment}</i>
-            </div>
-          `;
-        });
+        if(data.status === 'success') {
+          status.textContent = 'Review submitted successfully!';
+          status.style.color = 'green';
+          // Clear form
+          document.getElementById('name').value = '';
+          document.getElementById('comment').value = '';
+          document.getElementById('rating').value = '5';
+        } else {
+          status.textContent = 'Error: ' + data.message;
+          status.style.color = 'red';
+        }
+      })
+      .catch(err => {
+        status.textContent = 'Error submitting review.';
+        status.style.color = 'red';
+        console.error(err);
       });
+    });
   </script>
+
 </body>
 </html>
